@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossInsure AI - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🛡️ CrossInsure AI</div>
+                <div class="header-info">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span id="systemStatus">System Online</span>
+                    </div>
+                    <span style="color: var(--color-text-gray); font-size: var(--font-size-sm);">Admin Dashboard</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container" style="padding-top: var(--spacing-2xl); padding-bottom: var(--spacing-2xl);">
+            
+            <!-- Privacy Notice -->
+            <div class="privacy-message" style="margin-bottom: var(--spacing-2xl);">
+                <strong>🔐 Admin Transparency:</strong> All metrics shown here use anonymized data. 
+                Individual user information is never exposed. Fraud detection operates on incident fingerprints only, 
+                ensuring privacy while maintaining detection accuracy.
+            </div>
+
+            <!-- System Health Section -->
+            <div style="margin-bottom: var(--spacing-2xl);">
+                <h2 style="margin-bottom: var(--spacing-lg);">System Health</h2>
+                <div class="card dark">
+                    <div class="flex-between" style="flex-wrap: wrap; gap: var(--spacing-lg);">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="color: var(--color-text-gray); font-size: var(--font-size-sm); text-transform: uppercase; margin-bottom: var(--spacing-md);">Overall Status</div>
+                            <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                                <div class="status-indicator" id="healthStatus">
+                                    <div class="status-dot"></div>
+                                    <span>Operational</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="color: var(--color-text-gray); font-size: var(--font-size-sm); text-transform: uppercase; margin-bottom: var(--spacing-md);">API Response Time</div>
+                            <div style="font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-alice-blue);">
+                                <span id="apiResponseTime">--</span> ms
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="color: var(--color-text-gray); font-size: var(--font-size-sm); text-transform: uppercase; margin-bottom: var(--spacing-md);">Database</div>
+                            <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                                <span id="databaseStatus" style="color: var(--color-success); font-weight: 600;">✓ Connected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Component Status -->
+                    <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-glow);">
+                        <div style="color: var(--color-text-gray); font-size: var(--font-size-sm); text-transform: uppercase; margin-bottom: var(--spacing-md);">Component Status</div>
+                        <div class="grid grid-3" style="gap: var(--spacing-md);">
+                            <div style="padding: var(--spacing-md); background-color: rgba(16, 185, 129, 0.1); border-radius: var(--border-radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <div style="font-size: var(--font-size-sm); color: var(--color-risk-low); font-weight: 600;">✓ Auth Service</div>
+                            </div>
+                            <div style="padding: var(--spacing-md); background-color: rgba(16, 185, 129, 0.1); border-radius: var(--border-radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <div style="font-size: var(--font-size-sm); color: var(--color-risk-low); font-weight: 600;">✓ Image Processing</div>
+                            </div>
+                            <div style="padding: var(--spacing-md); background-color: rgba(16, 185, 129, 0.1); border-radius: var(--border-radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <div style="font-size: var(--font-size-sm); color: var(--color-risk-low); font-weight: 600;">✓ Embeddings</div>
+                            </div>
+                            <div style="padding: var(--spacing-md); background-color: rgba(16, 185, 129, 0.1); border-radius: var(--border-radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <div style="font-size: var(--font-size-sm); color: var(--color-risk-low); font-weight: 600;">✓ Fingerprinting</div>
+                            </div>
+                            <div style="padding: var(--spacing-md); background-color: rgba(16, 185, 129, 0.1); border-radius: var(--border-radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <div style="font-size: var(--font-size-sm); color: var(--color-risk-low); font-weight: 600;">✓ Fraud Scoring</div>
+                            </div>
+                            <div style="padding: var(--spacing-md); background-color: rgba(16, 185, 129, 0.1); border-radius: var(--border-radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <div style="font-size: var(--font-size-sm); color: var(--color-risk-low); font-weight: 600;">✓ Storage</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div style="margin-bottom: var(--spacing-2xl);">
+                <h2 style="margin-bottom: var(--spacing-lg);">Key Metrics</h2>
+                <div class="grid grid-4">
+                    <!-- Total Claims Analyzed -->
+                    <div class="metric-card">
+                        <div class="metric-label">Total Claims</div>
+                        <div class="metric-value" id="totalClaims">0</div>
+                        <div class="metric-change positive" id="claimsChange">
+                            <span>→</span> <span id="claimsTodayCount">0</span> today
+                        </div>
+                    </div>
+
+                    <!-- Total Fingerprints -->
+                    <div class="metric-card">
+                        <div class="metric-label">Fingerprints Stored</div>
+                        <div class="metric-value" id="totalFingerprints">0</div>
+                        <div class="metric-change positive" id="fingerprintsChange">
+                            <span>+</span> <span id="fingerprintsTodayCount">0</span> today
+                        </div>
+                    </div>
+
+                    <!-- High Risk Claims -->
+                    <div class="metric-card">
+                        <div class="metric-label">High Risk Claims</div>
+                        <div class="metric-value" style="color: var(--color-risk-high);" id="highRiskCount">0</div>
+                        <div class="metric-change negative">
+                            <span>⚠️</span> Flagged for review
+                        </div>
+                    </div>
+
+                    <!-- Average Fraud Score -->
+                    <div class="metric-card">
+                        <div class="metric-label">Avg Fraud Score</div>
+                        <div class="metric-value" id="avgFraudScore">0%</div>
+                        <div class="metric-change" style="color: var(--color-text-gray);">
+                            Across all claims
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Period Breakdown -->
+            <div style="margin-bottom: var(--spacing-2xl);">
+                <h2 style="margin-bottom: var(--spacing-lg);">Claims by Time Period</h2>
+                <div class="grid grid-3">
+                    <!-- This Week -->
+                    <div class="metric-card">
+                        <div class="metric-label">This Week</div>
+                        <div class="metric-value" id="claimsThisWeek">0</div>
+                        <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid rgba(240, 248, 255, 0.1);">
+                            <div style="font-size: var(--font-size-sm); color: var(--color-text-gray);">
+                                <div>🟢 Low: <span id="lowWeek">0</span></div>
+                                <div>🟡 Medium: <span id="mediumWeek">0</span></div>
+                                <div>🔴 High: <span id="highWeek">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- This Month -->
+                    <div class="metric-card">
+                        <div class="metric-label">This Month</div>
+                        <div class="metric-value" id="claimsThisMonth">0</div>
+                        <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid rgba(240, 248, 255, 0.1);">
+                            <div style="font-size: var(--font-size-sm); color: var(--color-text-gray);">
+                                <div>🟢 Low: <span id="lowMonth">0</span></div>
+                                <div>🟡 Medium: <span id="mediumMonth">0</span></div>
+                                <div>🔴 High: <span id="highMonth">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- This Year -->
+                    <div class="metric-card">
+                        <div class="metric-label">This Year</div>
+                        <div class="metric-value" id="claimsThisYear">0</div>
+                        <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid rgba(240, 248, 255, 0.1);">
+                            <div style="font-size: var(--font-size-sm); color: var(--color-text-gray);">
+                                <div>🟢 Low: <span id="lowYear">0</span></div>
+                                <div>🟡 Medium: <span id="mediumYear">0</span></div>
+                                <div>🔴 High: <span id="highYear">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Distribution Chart -->
+            <div style="margin-bottom: var(--spacing-2xl);">
+                <h2 style="margin-bottom: var(--spacing-lg);">Risk Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="riskDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Incident Type Breakdown -->
+            <div style="margin-bottom: var(--spacing-2xl);">
+                <h2 style="margin-bottom: var(--spacing-lg);">Incidents by Type</h2>
+                <div class="chart-container">
+                    <canvas id="incidentTypeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Refresh Controls -->
+            <div style="text-align: center; margin-bottom: var(--spacing-2xl);">
+                <button id="refreshBtn" class="btn btn-primary">
+                    🔄 Refresh Metrics
+                </button>
+                <div style="color: var(--color-text-gray); font-size: var(--font-size-sm); margin-top: var(--spacing-md);">
+                    Last updated: <span id="lastUpdated">Never</span>
+                </div>
+            </div>
+
+            <!-- Privacy & Compliance -->
+            <div class="card dark">
+                <div class="card-header">
+                    <h2>Data Privacy & Compliance</h2>
+                </div>
+                <div class="card-body">
+                    <ul style="list-style-position: inside; color: var(--color-text-gray); line-height: 2;">
+                        <li>✓ All user data anonymized before fraud analysis</li>
+                        <li>✓ Only incident fingerprints stored in database, never raw images</li>
+                        <li>✓ Personal identification data masked in image processing</li>
+                        <li>✓ Audit trails maintained for regulatory compliance</li>
+                        <li>✓ End-to-end encryption for data in transit</li>
+                        <li>✓ Regular security audits and penetration testing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="background-color: var(--bg-secondary); border-top: 1px solid var(--color-glow); padding: var(--spacing-xl) 0; margin-top: var(--spacing-2xl);">
+        <div class="container">
+            <div class="flex-between" style="flex-wrap: wrap; gap: var(--spacing-lg);">
+                <div>
+                    <p style="margin: 0; color: var(--color-text-gray); font-size: var(--font-size-sm);">
+                        &copy; 2024 CrossInsure AI. Privacy-first insurance fraud detection.
+                    </p>
+                </div>
+                <div style="display: flex; gap: var(--spacing-lg); font-size: var(--font-size-sm);">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Support</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="admin.js"></script>
+</body>
+</html>
