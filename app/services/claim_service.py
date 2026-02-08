@@ -203,8 +203,14 @@ class ClaimProcessingService:
             )
             
             # Use Gemini's analysis or fallback to heuristic
-            fraud_risk_score = gemini_analysis.get("fraud_score", 0.0)
-            fraud_risk_level = gemini_analysis.get("fraud_risk_level", "LOW")
+            # If no similar incidents found, enforce 0% fraud score
+            if len(similar_incidents) == 0:
+                fraud_risk_score = 0.0
+                fraud_risk_level = "LOW"
+            else:
+                fraud_risk_score = gemini_analysis.get("fraud_score", 0.0)
+                fraud_risk_level = gemini_analysis.get("fraud_risk_level", "LOW")
+            
             recommendation = ClaimProcessingService._map_recommendation(
                 fraud_risk_level, fraud_risk_score
             )

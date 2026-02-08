@@ -135,7 +135,7 @@ class GeminiFraudAnalyzer:
             f"Image: {inc.get('image_similarity', 0):.2%}, "
             f"Date: {inc.get('incident_date', 'N/A')}"
             for i, inc in enumerate(similar_incidents[:5])
-        ]) if similar_incidents else "No similar incidents found"
+        ]) if similar_incidents else "No similar incidents found - this represents a new unique pattern."
         
         image_info = image_analysis if image_analysis else "No image analysis available"
         
@@ -159,15 +159,18 @@ class GeminiFraudAnalyzer:
 **Similar Incidents (ACROSS ALL COMPANIES):**
 {similar_summary}
 
-**IMPORTANT: If similar incidents are found from different companies, this is a major red flag for fraud!**
+**IMPORTANT RULES:**
+- If NO similar incidents are found (count = 0), set fraud_score to 0.0 and fraud_risk_level to "LOW" - this is a new unique pattern with no fraud indicators.
+- If similar incidents are found from different companies, this is a major red flag for fraud!
 
 **Analysis Tasks:**
 1. Assess the overall fraud risk (LOW, MEDIUM, HIGH, CRITICAL)
-2. Identify specific red flags or suspicious patterns
-3. Check if the same incident was filed with multiple companies (major fraud indicator)
-4. Evaluate consistency between description, images, and patterns
-5. Consider the context of similar incidents and their companies
-6. Provide reasoning for your assessment
+2. If no similar incidents exist, fraud score MUST be 0.0 (new unique pattern)
+3. Identify specific red flags or suspicious patterns
+4. Check if the same incident was filed with multiple companies (major fraud indicator)
+5. Evaluate consistency between description, images, and patterns
+6. Consider the context of similar incidents and their companies
+7. Provide reasoning for your assessment
 
 **Output Format (JSON):**
 {{
@@ -287,14 +290,14 @@ Provide ONLY the JSON output, no additional text."""
     ) -> Dict[str, Any]:
         """Fallback fraud analysis using heuristics when Gemini is unavailable."""
         
-        # If no similar incidents, default to LOW risk
+        # If no similar incidents, default to LOW risk with 0% fraud score
         if similar_count == 0:
             return {
                 "fraud_risk_level": "LOW",
-                "fraud_score": 0.1,
-                "confidence": 0.7,
-                "red_flags": ["No similar historical incidents found"],
-                "reasoning": "First-time pattern. No historical matches found for comparison. Standard verification recommended.",
+                "fraud_score": 0.0,
+                "confidence": 0.9,
+                "red_flags": [],
+                "reasoning": "No similar historical incidents found. This represents a new unique claim pattern with no fraud indicators from past data. Standard processing recommended.",
                 "recommendations": [
                     "Process as new claim pattern",
                     "Standard documentation verification",
