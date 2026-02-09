@@ -88,8 +88,15 @@ async def analyze_claim(
     - processing_time_ms: Analysis duration
     """
     try:
-        # Authenticate user
-        current_user = await get_current_user(token, db)
+        # Authenticate user (will fail gracefully if DB unavailable)
+        try:
+            current_user = await get_current_user(token, db)
+        except RuntimeError as e:
+            logger.error(f"Database unavailable: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Service temporarily unavailable. Database initialization in progress.",
+            )
         
         logger.info(f"Claim analysis requested by user: {current_user.username}")
         
