@@ -55,6 +55,26 @@ app.add_middleware(
 
 
 # Global exception handler
+@app.exception_handler(RuntimeError)
+async def runtime_error_handler(request: Request, exc: RuntimeError):
+    """
+    Handle RuntimeError (e.g., database unavailable).
+    """
+    error_msg = str(exc)
+    if "Database is not available" in error_msg:
+        logger.warning(f"Database unavailable for request: {request.url.path}")
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content=jsonable_encoder(ErrorResponse(
+                error_code="SERVICE_UNAVAILABLE",
+                message="Service is initializing. Please try again in a moment.",
+                timestamp=datetime.now(timezone.utc),
+            )),
+        )
+    # Re-raise other RuntimeErrors
+    raise exc
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """
@@ -128,11 +148,15 @@ async def health_check():
     
     Returns basic health status information.
     """
+    from app.core.database import database_available
+    
     return {
         "status": "healthy",
         "service": settings.api_title,
         "version": settings.api_version,
         "environment": settings.environment,
+        "database_available": database_available,
+        "gemini_configured": settings.gemini_api_key is not None,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 

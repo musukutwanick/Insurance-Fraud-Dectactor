@@ -14,6 +14,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Base class for all models - must be defined early
+Base = declarative_base()
+
 # Create async engine
 # SQLite doesn't support pool_size/max_overflow parameters
 try:
@@ -39,9 +42,6 @@ except Exception as e:
     engine = None
     AsyncSessionLocal = None
     database_available = False
-
-# Base class for all models
-Base = declarative_base()
 
 
 async def get_db() -> AsyncSession:
