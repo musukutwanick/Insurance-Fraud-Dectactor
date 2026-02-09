@@ -26,13 +26,17 @@ class GeminiFraudAnalyzer:
     def __init__(self):
         """Initialize Gemini model for fraud analysis."""
         if settings.gemini_api_key:
-            self.client = genai.Client(api_key=settings.gemini_api_key)
-            self.model_name = settings.gemini_model
-            self.config = {
-                "temperature": settings.gemini_temperature,
-                "max_output_tokens": settings.gemini_max_tokens,
-            }
-            logger.info(f"Gemini fraud analyzer initialized with model: {settings.gemini_model}")
+            try:
+                self.client = genai.Client(api_key=settings.gemini_api_key)
+                self.model_name = settings.gemini_model
+                self.config = {
+                    "temperature": settings.gemini_temperature,
+                    "max_output_tokens": settings.gemini_max_tokens,
+                }
+                logger.info(f"Gemini fraud analyzer initialized with model: {settings.gemini_model}")
+            except Exception as e:
+                logger.error(f"Failed to initialize Gemini client: {e}")
+                self.client = None
         else:
             self.client = None
             logger.warning("Gemini API key not configured - fraud analysis will use basic heuristics")

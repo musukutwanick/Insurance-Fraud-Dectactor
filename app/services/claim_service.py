@@ -190,17 +190,30 @@ class ClaimProcessingService:
                 else 0.0
             )
             
-            gemini_analysis = await gemini_fraud_analyzer.analyze_claim_fraud_risk(
-                incident_type=incident_type,
-                damage_description=damage_description,
-                location_zone=location_zone,
-                image_analysis=None,
-                image_bytes_list=processed_images,
-                image_urls=image_urls,
-                similar_incidents=similar_incidents,
-                temporal_pattern_score=temporal_score,
-                spatial_cluster_score=spatial_score,
-            )
+            try:
+                gemini_analysis = await gemini_fraud_analyzer.analyze_claim_fraud_risk(
+                    incident_type=incident_type,
+                    damage_description=damage_description,
+                    location_zone=location_zone,
+                    image_analysis=None,
+                    image_bytes_list=processed_images,
+                    image_urls=image_urls,
+                    similar_incidents=similar_incidents,
+                    temporal_pattern_score=temporal_score,
+                    spatial_cluster_score=spatial_score,
+                )
+            except Exception as gemini_error:
+                logger.error(f"Gemini analysis failed, using fallback: {gemini_error}")
+                # Fallback to basic scoring if Gemini fails
+                gemini_analysis = {
+                    "fraud_score": min(0.8, len(similar_incidents) * 0.15) if similar_incidents else 0.0,
+                    "fraud_risk_level": "MEDIUM" if similar_incidents else "LOW",
+                    "red_flags": ["AI analysis unavailable - using basic heuristics"],
+                    "reasoning": f"Basic analysis: {len(similar_incidents)} similar incidents found",
+                    "recommendations": ["Manual review recommended"],
+                    "confidence": 0.5,
+                    "cross_company_fraud_detected": False
+                }
             
             # Use Gemini's analysis or fallback to heuristic
             # If no similar incidents found, enforce 0% fraud score

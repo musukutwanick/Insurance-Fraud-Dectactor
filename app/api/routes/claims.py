@@ -87,9 +87,22 @@ async def analyze_claim(
     - explanation: Human-readable assessment
     - processing_time_ms: Analysis duration
     """
+    # Essential logging to track what's happening
+    logger.info(f"=== Claim analysis request started ===")
+    logger.info(f"Incident Type: {incident_type}, Location: {location_zone}")
+    logger.info(f"Images count: {len(damage_images) if damage_images else 0}")
+    
     try:
         # Authenticate user
-        current_user = await get_current_user(token, db)
+        try:
+            current_user = await get_current_user(token, db)
+            logger.info(f"User authenticated: {current_user.username}")
+        except Exception as auth_error:
+            logger.error(f"Authentication failed: {auth_error}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Authentication failed: {str(auth_error)}",
+            )
         
         logger.info(f"Claim analysis requested by user: {current_user.username}")
         
@@ -155,17 +168,26 @@ async def analyze_claim(
                     )
         
         # Process claim and perform fraud analysis
-        analysis_result = await ClaimProcessingService.submit_and_analyze_claim(
-            db=db,
-            user=current_user,
-            incident_type=incident_type_enum.value,
-            damage_description=damage_description,
-            location_zone=location_zone_enum.value,
-            incident_date_approx=incident_date,
-            incident_time_window_start=time_window_start,
-            incident_time_window_end=time_window_end,
-            image_files=image_payloads,
-        )
+        logger.info("Starting claim processing...")
+        try:
+            analysis_result = await ClaimProcessingService.submit_and_analyze_claim(
+                db=db,
+                user=current_user,
+                incident_type=incident_type_enum.value,
+                damage_description=damage_description,
+                location_zone=location_zone_enum.value,
+                incident_date_approx=incident_date,
+                incident_time_window_start=time_window_start,
+                incident_time_window_end=time_window_end,
+                image_files=image_payloads,
+            )
+            logger.info(f"Claim processing completed successfully: {analysis_result.get('claim_reference_id')}")
+        except Exception as processing_error:
+            logger.error(f"Claim processing failed: {processing_error}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Claim processing failed: {str(processing_error)}",
+            )
         
         logger.info(
             f"Claim analysis completed: {analysis_result['claim_reference_id']}, "
