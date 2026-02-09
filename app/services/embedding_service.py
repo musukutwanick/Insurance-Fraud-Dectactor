@@ -14,24 +14,38 @@ import json
 import hashlib
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Tuple, Optional
-import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.models import IncidentFingerprint
 from app.core.logging_config import get_logger
 from app.core.config import settings
-from google import genai
 
 logger = get_logger(__name__)
 
-# Configure Gemini API
-if settings.gemini_api_key:
-    gemini_client = genai.Client(api_key=settings.gemini_api_key)
-    logger.info("Gemini API configured successfully")
-else:
+# Lazy import of dependencies to prevent import-time crashes
+try:
+    import numpy as np
+    from google import genai
+    EMBEDDINGS_AVAILABLE = True
+    
+    # Configure Gemini API client
+    if settings.gemini_api_key:
+        try:
+            gemini_client = genai.Client(api_key=settings.gemini_api_key)
+            logger.info("Gemini API configured successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize Gemini client: {e}")
+            gemini_client = None
+    else:
+        gemini_client = None
+        logger.warning("Gemini API key not found - using fallback embeddings")
+except Exception as import_error:
+    logger.error(f"Failed to import embedding dependencies: {import_error}\")
+    np = None
+    genai = None
     gemini_client = None
-    logger.warning("Gemini API key not found - using fallback embeddings")
+    EMBEDDINGS_AVAILABLE = False
 
 
 class EmbeddingService:

@@ -9,15 +9,24 @@ Provides:
 """
 
 from typing import Dict, Any, List, Optional
-from google import genai
 from app.core.config import settings
 from app.core.logging_config import get_logger
 import json
 import io
-from PIL import Image
 import httpx
 
 logger = get_logger(__name__)
+
+# Lazy import of dependencies to prevent import-time crashes
+try:
+    from google import genai
+    from PIL import Image
+    GENAI_AVAILABLE = True
+except Exception as import_error:
+    logger.error(f"Failed to import Gemini dependencies: {import_error}")
+    genai = None
+    Image = None
+    GENAI_AVAILABLE = False
 
 
 class GeminiFraudAnalyzer:
@@ -25,21 +34,27 @@ class GeminiFraudAnalyzer:
     
     def __init__(self):
         """Initialize Gemini model for fraud analysis."""
-        if settings.gemini_api_key:
-            try:
-                self.client = genai.Client(api_key=settings.gemini_api_key)
-                self.model_name = settings.gemini_model
-                self.config = {
-                    "temperature": settings.gemini_temperature,
-                    "max_output_tokens": settings.gemini_max_tokens,
-                }
-                logger.info(f"Gemini fraud analyzer initialized with model: {settings.gemini_model}")
-            except Exception as e:
-                logger.error(f"Failed to initialize Gemini client: {e}")
-                self.client = None
-        else:
-            self.client = None
+        self.client = None
+        self.model_name = settings.gemini_model
+        self.config = {
+            "temperature": settings.gemini_temperature,
+            "max_output_tokens": settings.gemini_max_tokens,
+        }
+        
+        if not GENAI_AVAILABLE:
+            logger.warning("Gemini dependencies not available - using fallback analysis")
+            return
+            
+        if not settings.gemini_api_key:
             logger.warning("Gemini API key not configured - fraud analysis will use basic heuristics")
+            return
+            
+        try:
+            self.client = genai.Client(api_key=settings.gemini_api_key)
+            logger.info(f"Gemini fraud analyzer initialized with model: {settings.gemini_model}")
+        except Exception as e:
+            logger.error(f"Failed to initialize Gemini client: {e}")
+            self.client = None
     
     async def analyze_claim_fraud_risk(
         self,
@@ -192,7 +207,7 @@ Provide ONLY the JSON output, no additional text."""
         return prompt
 
     def _analyze_images_with_gemini(self, image_bytes_list: List[bytes]) -> Optional[str]:
-        if not self.client:
+        if not self.client or not GENAI_AVAILABLE or not Image:
             return None
 
         try:
@@ -219,7 +234,7 @@ Provide ONLY the JSON output, no additional text."""
             return None
 
     async def _analyze_images_with_urls(self, image_urls: List[str]) -> Optional[str]:
-        if not self.client:
+        if not self.client or not GENAI_AVAILABLE or not Image:
             return None
 
         try:
@@ -361,5 +376,20 @@ Provide ONLY the JSON output, no additional text."""
         }
 
 
-# Singleton instance
-gemini_fraud_analyzer = GeminiFraudAnalyzer()
+# Singleton instance - lazy initialized
+_gemini_fraud_analyzer_instance = None
+
+def get_gemini_fraud_analyzer() -> GeminiFraudAnalyzer:
+    """Get or create the singleton Gemini fraud analyzer instance."""
+    global _gemini_fraud_analyzer_instance
+    if _gemini_fraud_analyzer_instance is None:
+        try:
+            _gemini_fraud_analyzer_instance = GeminiFraudAnalyzer()
+        except Exception as e:
+            logger.error(f"Failed to create GeminiFraudAnalyzer: {e}")
+            # Create a minimal instance that will use fallback
+            _gemini_fraud_analyzer_instance = GeminiFraudAnalyzer()
+    return _gemini_fraud_analyzer_instance
+
+# For backward compatibility
+gemini_fraud_analyzer = get_gemini_fraud_analyzer()

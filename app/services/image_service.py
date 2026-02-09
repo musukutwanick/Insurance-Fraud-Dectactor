@@ -14,14 +14,27 @@ import hashlib
 import os
 import uuid
 import asyncio
-import numpy as np
-from PIL import Image
-import io
 from typing import Tuple, List, Dict, Optional
 from app.core.config import settings
 from app.models import Claim, ClaimImage
 from app.supabase_client import get_supabase_client, is_supabase_configured
 from app.services.supabase_service import SupabaseMetadataService
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Lazy import of image dependencies
+try:
+    import numpy as np
+    from PIL import Image
+    import io
+    IMAGE_PROCESSING_AVAILABLE = True
+except Exception as import_error:
+    logger.error(f\"Failed to import image processing dependencies: {import_error}\")
+    np = None
+    Image = None
+    io = None
+    IMAGE_PROCESSING_AVAILABLE = False
 
 
 class ImageProcessingService:
