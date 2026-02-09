@@ -24,7 +24,7 @@ python-dotenv==1.0.0
 Pillow==10.4.0
 
 # Gemini AI
-google-genai==0.0.14
+google-genai==1.50.0
 
 # Gunicorn for production
 gunicorn==21.2.0
