@@ -21,6 +21,7 @@ python-dotenv==1.0.0
 
 # Image processing
 Pillow==10.4.0
+numpy==1.26.4
 
 # Gemini AI
 google-genai==1.50.0
