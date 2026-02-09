@@ -11,6 +11,7 @@ python-multipart==0.0.7
 # Database
 aiosqlite==0.20.0
 SQLAlchemy==2.0.35
+greenlet==3.3.1
 
 # HTTP requests
 httpx==0.28.1
