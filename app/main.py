@@ -100,8 +100,8 @@ async def startup_event():
         await init_db()
         logger.info("Database initialized successfully")
     except Exception as e:
-        logger.error(f"Failed to initialize database: {str(e)}")
-        raise
+        logger.warning(f"Failed to initialize database: {str(e)}")
+        logger.info("Application will continue without local database - using Supabase for data storage")
 
 
 @app.on_event("shutdown")

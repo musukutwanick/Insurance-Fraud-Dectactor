@@ -134,54 +134,63 @@ async def demo_login(
     
     Creates a company-specific demo user if missing, then returns JWT tokens.
     """
-    company_name = request.company_name.strip()
-    if not company_name:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="company_name is required",
+    try:
+        company_name = request.company_name.strip()
+        if not company_name:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="company_name is required",
+            )
+
+        normalized = "".join(ch for ch in company_name.lower().replace(" ", "_") if ch.isalnum() or ch == "_")
+        username = request.username or f"{normalized}_demo"
+        email = f"{normalized}@demo.local"
+
+        stmt = select(User).where(User.username == username)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if user is None:
+            demo_password = secrets.token_urlsafe(16)
+            try:
+                user = await AuthService.create_user(
+                    db,
+                    username=username,
+                    email=email,
+                    password=demo_password,
+                    role=UserRole.INSURER,
+                    organization_name=company_name,
+                )
+            except ValueError:
+                email = f"{normalized}-{secrets.token_hex(4)}@demo.local"
+                user = await AuthService.create_user(
+                    db,
+                    username=username,
+                    email=email,
+                    password=demo_password,
+                    role=UserRole.INSURER,
+                    organization_name=company_name,
+                )
+        else:
+            user.last_login = datetime.now(timezone.utc)
+            db.add(user)
+
+        await db.commit()
+
+        tokens = AuthService.create_tokens(user)
+        audit_logger.info(f"Demo login for user: {user.username} ({company_name})")
+
+        return TokenResponse(
+            access_token=tokens["access_token"],
+            refresh_token=tokens["refresh_token"],
+            token_type=tokens["token_type"],
+            expires_in=tokens["expires_in"],
         )
-
-    normalized = "".join(ch for ch in company_name.lower().replace(" ", "_") if ch.isalnum() or ch == "_")
-    username = request.username or f"{normalized}_demo"
-    email = f"{normalized}@demo.local"
-
-    stmt = select(User).where(User.username == username)
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
-
-    if user is None:
-        demo_password = secrets.token_urlsafe(16)
-        try:
-            user = await AuthService.create_user(
-                db,
-                username=username,
-                email=email,
-                password=demo_password,
-                role=UserRole.INSURER,
-                organization_name=company_name,
-            )
-        except ValueError:
-            email = f"{normalized}-{secrets.token_hex(4)}@demo.local"
-            user = await AuthService.create_user(
-                db,
-                username=username,
-                email=email,
-                password=demo_password,
-                role=UserRole.INSURER,
-                organization_name=company_name,
-            )
-    else:
-        user.last_login = datetime.now(timezone.utc)
-        db.add(user)
-
-    await db.commit()
-
-    tokens = AuthService.create_tokens(user)
-    audit_logger.info(f"Demo login for user: {user.username} ({company_name})")
-
-    return TokenResponse(
-        access_token=tokens["access_token"],
-        refresh_token=tokens["refresh_token"],
-        token_type=tokens["token_type"],
-        expires_in=tokens["expires_in"],
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        audit_logger.error(f"Demo login failed: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Demo login failed: {str(e)}",
+        )

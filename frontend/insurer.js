@@ -182,10 +182,11 @@ claimForm.addEventListener('submit', async (e) => {
     // Add Bearer token (default test token)
     let token = getAuthToken();
     if (!token) {
-        const loggedIn = await autoLoginForCompany({ showToast: false });
+        const loginResult = await autoLoginForCompany({ showToast: false });
         token = getAuthToken();
-        if (!loggedIn || !token) {
-            showError('Auto-login failed. Please refresh and try again.');
+        if (!loginResult.success || !token) {
+            const errorMsg = loginResult.error || 'Unknown error';
+            showError(`Auto-login failed: ${errorMsg}. Please refresh and try again.`);
             return;
         }
     }
@@ -209,9 +210,9 @@ claimForm.addEventListener('submit', async (e) => {
         if (response.status === 401) {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_company');
-            const relogged = await autoLoginForCompany({ force: true, showToast: false });
+            const loginResult = await autoLoginForCompany({ force: true, showToast: false });
             const newToken = getAuthToken();
-            if (relogged && newToken) {
+            if (loginResult.success && newToken) {
                 response = await sendAnalyzeRequest(newToken);
             }
         }
@@ -316,13 +317,13 @@ async function autoLoginForCompany(options = {}) {
     const company = getCurrentCompany();
     if (!company) {
         console.error('No company selected for demo login');
-        return false;
+        return { success: false, error: 'No company selected' };
     }
 
     const existingToken = getAuthToken();
     const existingCompany = localStorage.getItem('auth_company');
     if (!force && existingToken && existingCompany === company) {
-        return true;
+        return { success: true };
     }
 
     try {
@@ -344,14 +345,22 @@ async function autoLoginForCompany(options = {}) {
             if (showToast) {
                 showSuccess(`Switched to ${company}`);
             }
-            return true;
+            return { success: true };
         }
 
-        console.error('Demo login failed:', await response.text());
-        return false;
+        const errorText = await response.text();
+        let errorMsg = `Demo login failed (${response.status})`;
+        try {
+            const errorData = JSON.parse(errorText);
+            errorMsg = errorData.detail || errorMsg;
+        } catch {
+            errorMsg = errorText || errorMsg;
+        }
+        console.error('Demo login failed:', errorMsg);
+        return { success: false, error: errorMsg };
     } catch (error) {
         console.error('Auto-login error:', error);
-        return false;
+        return { success: false, error: error.message || 'Network error' };
     }
 }
 
